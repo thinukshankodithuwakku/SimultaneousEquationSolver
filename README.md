@@ -4,7 +4,7 @@ A simple simultaneous equation parser and solver that uses matrices. Supports lo
 ## Overview
 This was a simultaneous equation solver originally intended to be used as part of the solution for AOC 2025 Day 10 part 2, but was later scrapped, so I decided to turn it into it's own project.
 
-IMPORTANT: This project is very early in development and is prone to errors.
+⚠️ IMPORTANT: This project is very early in development and is prone to errors.
 
 ## How it works
 Those of you who are studying or have studied A-level further maths may be familiar with using matrices to solve simultaneous equations. This solver uses exactly the textbook method:
@@ -16,6 +16,7 @@ The process of inverting the matrix has also been broken down using the steps:
 * Work out "matrix of minors"
 * Apply corresponding cofactor signage
 * Take the transpose of cofactor matrix to get adjugate matrix
+* Divide by determinant
 
 ## Notes on input
 
