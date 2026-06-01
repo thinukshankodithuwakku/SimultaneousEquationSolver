@@ -185,6 +185,12 @@ interface Sym extends Expr {
 
 function ParseEqtn(tokens : Token[]) : Equation{
 
+    function expect(type : TokenType, msg : string){
+
+        if(tokens.length == 0 || tokens[0].type != type) throw msg;
+
+    }
+
     const parser = new ExprParser(tokens);
     let coef : number = 1;
 
@@ -197,7 +203,7 @@ function ParseEqtn(tokens : Token[]) : Equation{
 
         if(tokens[0].type == "plus") minus = false;
         else if(tokens[0].type == "minus") minus = true;
-        else throw tokens[0].value;
+        else throw `Missing operator!`;
 
         tokens.shift();
 
@@ -217,7 +223,7 @@ function ParseEqtn(tokens : Token[]) : Equation{
             
             
             while(tokens.length > 0 && (tokens[0] as Token).type != "osl") tokens.shift();
-            if(tokens.length == 0 || (tokens[0] as Token).type != "osl") throw "'&' expected!";
+            expect("osl", "'&' expected!");
             tokens.shift();
 
         }
@@ -234,16 +240,18 @@ function ParseEqtn(tokens : Token[]) : Equation{
         
     }
 
+    expect("equals", "Missing '=' in equation(s)!");
+
     tokens.shift() //Consuming the equals token
 
-    if(tokens[0].type == "minus") minus = true;
+    if((tokens[0].type as TokenType) == "minus") minus = true;
 
-    if(tokens[0].type == "minus" || tokens[0].type == "plus") tokens.shift();
+    if((tokens[0].type as TokenType) == "minus" || (tokens[0].type as TokenType) == "plus") tokens.shift();
 
-    if(tokens[0].type != "num" && tokens[0].type != "osl") throw `Unexpected character '${tokens[0].value}'!`;
+    if((tokens[0].type as TokenType) != "num" && (tokens[0].type as TokenType) != "osl") throw `Unexpected character '${tokens[0].value}'!`;
     let sum = 0;
 
-    if(tokens[0].type == "num") sum = Number((tokens.shift() as Token).value);
+    if((tokens[0].type as TokenType) == "num") sum = Number((tokens.shift() as Token).value);
     else {
 
         tokens.shift();

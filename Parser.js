@@ -79,6 +79,10 @@ function Tokenise(src) {
     return tokens;
 }
 function ParseEqtn(tokens) {
+    function expect(type, msg) {
+        if (tokens.length == 0 || tokens[0].type != type)
+            throw msg;
+    }
     const parser = new ExprParser(tokens);
     let coef = 1;
     let minus = false;
@@ -90,7 +94,7 @@ function ParseEqtn(tokens) {
         else if (tokens[0].type == "minus")
             minus = true;
         else
-            throw tokens[0].value;
+            throw `Missing operator!`;
         tokens.shift();
         if (tokens[0].type == "num") {
             coef = Number(tokens.shift().value);
@@ -104,8 +108,7 @@ function ParseEqtn(tokens) {
                 coef = -coef;
             while (tokens.length > 0 && tokens[0].type != "osl")
                 tokens.shift();
-            if (tokens.length == 0 || tokens[0].type != "osl")
-                throw "'&' expected!";
+            expect("osl", "'&' expected!");
             tokens.shift();
         }
         else {
@@ -119,6 +122,7 @@ function ParseEqtn(tokens) {
         terms.push({ sym: sym, coef: coef });
         Vars.push(sym);
     }
+    expect("equals", "Missing '=' in equation(s)!");
     tokens.shift(); //Consuming the equals token
     if (tokens[0].type == "minus")
         minus = true;

@@ -18,7 +18,7 @@ console.log("Welcome to simultaneous equation solver.")
 console.log("Enter each equation in the format ax + by + cz...= d");
 console.log("Type done when ready");
 
-/*const res = Solve(ParseSystem(["x + y = 5"]));
+/*const res = Solve(ParseSystem(["-5x + 3y 5z = 13"]));
 if(res) Array.from(res.keys()).forEach(sym => console.log(sym, ' = ', res.get(sym)));*/
 
 begin();
