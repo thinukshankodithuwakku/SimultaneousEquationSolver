@@ -327,7 +327,7 @@ class ExprParser {
 
         let left : Expr = this.parseMult();
 
-        while(this.at().type == "plus" || this.at().type == "minus"){
+        while(this.tokens.length > 0 && (this.at().type == "plus" || this.at().type == "minus")){
 
             const op = this.eat().value;
             const right = this.parseMult();
@@ -354,7 +354,7 @@ class ExprParser {
 
         let left : Expr = this.parseExp();
 
-        while(this.at().type == "mult" || this.at().type == "div"){
+        while(this.tokens.length > 0 && (this.at().type == "mult" || this.at().type == "div")){
 
             const op = this.eat().value;
             const right = this.parseExp();
@@ -381,7 +381,7 @@ class ExprParser {
 
         let left : Expr = this.unaryExpr();
 
-        while(this.at().type == "exp"){
+        while(this.tokens.length > 0 && this.at().type == "exp"){
 
             const op = this.eat().value;
             const right = this.unaryExpr();
