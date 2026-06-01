@@ -226,7 +226,7 @@ class ExprParser {
     unaryExpr() {
         if (this.eol())
             return this.zero;
-        if (this.at().type == "mult" || this.at().type == "minus") {
+        if (this.at().type == "plus" || this.at().type == "minus") {
             const op = this.eat().value;
             return {
                 op: op,
