@@ -113,22 +113,9 @@ function Tran(Mat: number[][]){
 
 function Invert(Mat : number[][]){
 
-    let determinant = 0;
-    try {
+    let determinant = det(Mat);
 
-        determinant = det(Mat);
-
-    }
-    catch (err) {
-
-        throw("No unique solution to your system");
-
-
-    }
-
-
-
-    if(determinant == 0) return [];
+    if(determinant == 0) throw("No unique solution to your system. There is either an infinity of solutions, no solutions or 1 or more of your equations are identical.");
 
     const inv = Tran(Cofac(MatMin(Mat))); //adjugate matrix
 
