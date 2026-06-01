@@ -563,17 +563,8 @@ export function ParseSystem(src : string[]) : System {
 
     const eqtns = src.map(raw => ParseEqtn(Tokenise(raw)));
 
-    const uniqueVars : string[] = [];
+    const uniqueVars : string[] = [...new Set(eqtns.map(eqtn => eqtn.vars).flat())];
 
-    for(const eqtn of eqtns){
-
-        for(const sym of eqtn.vars){
-
-            if(!uniqueVars.includes(sym)) uniqueVars.push(sym);
-
-        }
-
-    }
 
     for(const eqtn of eqtns){
 
