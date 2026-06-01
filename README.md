@@ -21,6 +21,6 @@ The process of inverting the matrix has also been broken down using the steps:
 ## Notes on input
 
 * Any equations inputted must be of the form ax + by + cz ... = d, where all variables and constants are real 
-* To start and end a longer math expression, use '&' e.g &e^pi - 5&
+* To start and end a longer math expression, use '{}' e.g {e^pi - 5}
 * The system must have a unique solution
 * The number of equations given must match the number of unique variables used

@@ -23,7 +23,7 @@ function Tokenise(src : string){
 
     const chars : string[] = src.split('');
 
-    const ops = ['<', '>']
+    const ops = ['<', '>','≤', '≥', '%'];
 
     function pushTok(type : TokenType, value : string){
 
@@ -215,15 +215,15 @@ function ParseEqtn(tokens : Token[]) : Equation{
             if(minus) coef = -coef;
 
         }
-        else if((tokens[0] as Token).type == "osl"){
+        else if((tokens[0] as Token).type == "obr"){
 
             tokens.shift();
             coef = evaluate(parser.parse());
             if(minus) coef = -coef;
             
             
-            while(tokens.length > 0 && (tokens[0] as Token).type != "osl") tokens.shift();
-            expect("osl", "'&' expected!");
+            while(tokens.length > 0 && (tokens[0] as Token).type != "cbr") tokens.shift();
+            expect("cbr", "'}' expected!");
             tokens.shift();
 
         }
@@ -248,7 +248,7 @@ function ParseEqtn(tokens : Token[]) : Equation{
 
     if((tokens[0].type as TokenType) == "minus" || (tokens[0].type as TokenType) == "plus") tokens.shift();
 
-    if((tokens[0].type as TokenType) != "num" && (tokens[0].type as TokenType) != "osl") throw `Unexpected character '${tokens[0].value}'!`;
+    if((tokens[0].type as TokenType) != "num" && (tokens[0].type as TokenType) != "obr") throw `Unexpected token '${tokens[0].value}'!`;
     let sum = 0;
 
     if((tokens[0].type as TokenType) == "num") sum = Number((tokens.shift() as Token).value);
@@ -256,8 +256,8 @@ function ParseEqtn(tokens : Token[]) : Equation{
 
         tokens.shift();
         sum = evaluate(parser.parse());
-        while(tokens.length > 0 && (tokens[0] as Token).type != "osl") tokens.shift();
-        if(tokens.length == 0 || (tokens[0] as Token).type != "osl") throw "'&' expected!";
+        while(tokens.length > 0 && (tokens[0] as Token).type != "cbr") tokens.shift();
+        expect("cbr", "'}' expected!");
         tokens.shift();
 
     }
@@ -309,7 +309,7 @@ class ExprParser {
 
     private eol() : boolean {
 
-        return this.tokens.length == 0 || this.tokens[0].type == "osl";
+        return this.tokens.length == 0 || this.tokens[0].type == "cbr";
 
     }
 
@@ -327,7 +327,7 @@ class ExprParser {
 
         let left : Expr = this.parseMult();
 
-        while(this.tokens.length > 0 && (this.at().type == "plus" || this.at().type == "minus")){
+        while(!this.eol() && (this.at().type == "plus" || this.at().type == "minus")){
 
             const op = this.eat().value;
             const right = this.parseMult();
@@ -354,7 +354,7 @@ class ExprParser {
 
         let left : Expr = this.parseExp();
 
-        while(this.tokens.length > 0 && (this.at().type == "mult" || this.at().type == "div")){
+        while(!this.eol() && (this.at().type == "mult" || this.at().type == "div")){
 
             const op = this.eat().value;
             const right = this.parseExp();
@@ -381,7 +381,7 @@ class ExprParser {
 
         let left : Expr = this.unaryExpr();
 
-        while(this.tokens.length > 0 && this.at().type == "exp"){
+        while(!this.eol() && this.at().type == "exp"){
 
             const op = this.eat().value;
             const right = this.unaryExpr();
@@ -418,17 +418,7 @@ class ExprParser {
             } as UnaryExpr;
 
         }
-       else{
-
-
-            return {
-
-                op: '+',
-                operand: this.primary()
-
-            } as UnaryExpr;
-
-        }
+       else return this.primary();
 
     }
 

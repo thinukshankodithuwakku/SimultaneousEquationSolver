@@ -8,7 +8,7 @@ function Tokenise(src) {
     src = src.trim();
     const tokens = [];
     const chars = src.split('');
-    const ops = ['<', '>'];
+    const ops = ['<', '>', '≤', '≥', '%'];
     function pushTok(type, value) {
         tokens.push({
             type: type,
@@ -101,14 +101,14 @@ function ParseEqtn(tokens) {
             if (minus)
                 coef = -coef;
         }
-        else if (tokens[0].type == "osl") {
+        else if (tokens[0].type == "obr") {
             tokens.shift();
             coef = evaluate(parser.parse());
             if (minus)
                 coef = -coef;
-            while (tokens.length > 0 && tokens[0].type != "osl")
+            while (tokens.length > 0 && tokens[0].type != "cbr")
                 tokens.shift();
-            expect("osl", "'&' expected!");
+            expect("cbr", "'}' expected!");
             tokens.shift();
         }
         else {
@@ -128,18 +128,17 @@ function ParseEqtn(tokens) {
         minus = true;
     if (tokens[0].type == "minus" || tokens[0].type == "plus")
         tokens.shift();
-    if (tokens[0].type != "num" && tokens[0].type != "osl")
-        throw `Unexpected character '${tokens[0].value}'!`;
+    if (tokens[0].type != "num" && tokens[0].type != "obr")
+        throw `Unexpected token '${tokens[0].value}'!`;
     let sum = 0;
     if (tokens[0].type == "num")
         sum = Number(tokens.shift().value);
     else {
         tokens.shift();
         sum = evaluate(parser.parse());
-        while (tokens.length > 0 && tokens[0].type != "osl")
+        while (tokens.length > 0 && tokens[0].type != "cbr")
             tokens.shift();
-        if (tokens.length == 0 || tokens[0].type != "osl")
-            throw "'&' expected!";
+        expect("cbr", "'}' expected!");
         tokens.shift();
     }
     if (minus)
@@ -170,7 +169,7 @@ class ExprParser {
         return this.tokens.shift();
     }
     eol() {
-        return this.tokens.length == 0 || this.tokens[0].type == "osl";
+        return this.tokens.length == 0 || this.tokens[0].type == "cbr";
     }
     parse() {
         return this.parseAdditive();
@@ -179,7 +178,7 @@ class ExprParser {
         if (this.eol())
             return this.zero;
         let left = this.parseMult();
-        while (this.at().type == "plus" || this.at().type == "minus") {
+        while (!this.eol() && (this.at().type == "plus" || this.at().type == "minus")) {
             const op = this.eat().value;
             const right = this.parseMult();
             left = {
@@ -195,7 +194,7 @@ class ExprParser {
         if (this.eol())
             return this.zero;
         let left = this.parseExp();
-        while (this.at().type == "mult" || this.at().type == "div") {
+        while (!this.eol() && (this.at().type == "mult" || this.at().type == "div")) {
             const op = this.eat().value;
             const right = this.parseExp();
             left = {
@@ -211,7 +210,7 @@ class ExprParser {
         if (this.eol())
             return this.zero;
         let left = this.unaryExpr();
-        while (this.at().type == "exp") {
+        while (!this.eol() && this.at().type == "exp") {
             const op = this.eat().value;
             const right = this.unaryExpr();
             left = {
@@ -233,12 +232,8 @@ class ExprParser {
                 operand: this.primary()
             };
         }
-        else {
-            return {
-                op: '+',
-                operand: this.primary()
-            };
-        }
+        else
+            return this.primary();
     }
     primary() {
         if (this.eol())
@@ -323,13 +318,7 @@ function evalUn(expr) {
 }
 function ParseSystem(src) {
     const eqtns = src.map(raw => ParseEqtn(Tokenise(raw)));
-    const uniqueVars = [];
-    for (const eqtn of eqtns) {
-        for (const sym of eqtn.vars) {
-            if (!uniqueVars.includes(sym))
-                uniqueVars.push(sym);
-        }
-    }
+    const uniqueVars = [...new Set(eqtns.map(eqtn => eqtn.vars).flat())];
     for (const eqtn of eqtns) {
         const missing = uniqueVars.filter(sym => !eqtn.vars.includes(sym));
         for (const sym of missing) {
