@@ -505,7 +505,7 @@ class ExprParser {
 
 }
 
-const MatConsts = ["pi", "e", "phi"];
+const MatConsts = ["pi", "e", "phi", "tau"];
 const ConstantTable : Record<string , number> = {
 
     "pi" : Math.PI,
