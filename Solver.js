@@ -67,15 +67,9 @@ function Tran(Mat) {
 //2x - 4y - 3z = -5
 //-5x + 4y +5z = 13
 function Invert(Mat) {
-    let determinant = 0;
-    try {
-        determinant = det(Mat);
-    }
-    catch (err) {
-        throw ("No unique solution to your system");
-    }
+    let determinant = det(Mat);
     if (determinant == 0)
-        return [];
+        throw ("No unique solution to your system. There is either an infinity of solutions, no solutions or 1 or more of your equations are identical.");
     const inv = Tran(Cofac(MatMin(Mat))); //adjugate matrix
     for (let i = 0; i < Mat.length; i++) {
         for (let j = 0; j < Mat[0].length; j++) {

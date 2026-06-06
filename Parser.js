@@ -67,6 +67,9 @@ function Tokenise(src) {
         else if (next == ')') {
             pushTok("rp", chars.shift());
         }
+        else if (next == '|') {
+            pushTok("abs", chars.shift());
+        }
         else if (ops.includes(next)) {
             throw `Unexpected operator '${chars.shift()}'. Only '+' and '-' supported for linear equations.`;
         }
@@ -235,6 +238,10 @@ class ExprParser {
         else
             return this.primary();
     }
+    expect(type, msg) {
+        if (this.eol() || this.at().type != type)
+            throw new SyntaxError(msg);
+    }
     primary() {
         if (this.eol())
             return this.zero;
@@ -251,9 +258,8 @@ class ExprParser {
                 };
             case "lp":
                 this.eat();
-                const expr = this.parseAdditive();
-                if (this.at().type != "rp")
-                    throw "')' expected!";
+                const expr = this.parse();
+                this.expect("rp", "')' expected!");
                 this.eat();
                 return expr;
             case "obr":
@@ -262,10 +268,19 @@ class ExprParser {
                     kind: "Sym",
                     value: this.eat().value,
                 };
-                if (this.at().type != "cbr")
-                    throw "'}' expected!";
+                this.expect("cbr", "'}' expected!");
                 this.eat();
                 return sym;
+            case "abs":
+                this.eat();
+                const signed = this.parse();
+                this.expect("abs", "'|' expected!");
+                this.eat();
+                return {
+                    kind: "Unary",
+                    op: "|",
+                    operand: signed,
+                };
             default:
                 throw `Unexpected token '${this.at().value}'!`;
         }
@@ -276,6 +291,7 @@ const ConstantTable = {
     "pi": Math.PI,
     "e": Math.E,
     "phi": (1 + Math.sqrt(5)) / 2,
+    "tau": 2 * Math.PI,
 };
 function evaluate(expr) {
     switch (expr.kind) {
@@ -314,6 +330,10 @@ function evalUn(expr) {
             return evaluate(expr.operand);
         case "-":
             return -evaluate(expr.operand);
+        case "|":
+            return Math.abs(evaluate(expr.operand));
+        default:
+            return 0;
     }
 }
 function ParseSystem(src) {

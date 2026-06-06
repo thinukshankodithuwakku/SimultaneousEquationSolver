@@ -1,7 +1,7 @@
 import { push } from "node:stream/iter";
 import {Equation, System} from "./Solver.js";
 
-type TokenType = "num" | "sym" | "plus" | "minus" | "equals" | "op" | "other" | "lp" | "rp" | "div" | "mult" | "exp" | "obr" | "cbr" | "osl" | "csl";
+type TokenType = "num" | "sym" | "plus" | "minus" | "equals" | "op" | "other" | "lp" | "rp" | "div" | "mult" | "exp" | "obr" | "cbr" | "osl" | "csl" | "abs";
 
 interface Token {
 
@@ -129,6 +129,11 @@ function Tokenise(src : string){
             pushTok("rp", chars.shift() as string);
 
         }
+        else if(next == '|'){
+
+            pushTok("abs", chars.shift() as string);
+
+        }
         else if(ops.includes(next)){
 
             throw `Unexpected operator '${chars.shift() as string}'. Only '+' and '-' supported for linear equations.`;
@@ -156,13 +161,15 @@ interface Expr {
 
 interface UnaryExpr extends Expr {
 
-    op: '+' | '-'
+    kind: "Unary",
+    op: '+' | '-' | '|',
     operand: Expr
 
 }
 
 interface BinaryExpr extends Expr {
 
+    kind: "Binary"
     op: '+' | '-' | '*' | '/' | '^',
     lhs: Expr,
     rhs: Expr
@@ -422,7 +429,13 @@ class ExprParser {
 
     }
 
-    primary() : Expr {
+    private expect(type : TokenType, msg : string) {
+
+        if(this.eol() || this.at().type != type) throw new SyntaxError(msg);
+
+    }
+
+    private primary() : Expr {
 
         if(this.eol()) return this.zero;
 
@@ -446,8 +459,9 @@ class ExprParser {
 
             case "lp":
                 this.eat();
-                const expr = this.parseAdditive();
-                if(this.at().type != "rp") throw "')' expected!";
+                const expr = this.parse();
+                
+                this.expect("rp", "')' expected!");
                 this.eat();
                 return expr;
 
@@ -459,9 +473,27 @@ class ExprParser {
                     value: this.eat().value,
 
                 } as Sym;
-                if(this.at().type != "cbr") throw "'}' expected!";
+
+                this.expect("cbr", "'}' expected!");
                 this.eat();
                 return sym;
+
+            case "abs":
+                this.eat();
+
+                const signed = this.parse();
+                this.expect("abs", "'|' expected!");
+                this.eat();
+
+                return {
+
+                    kind: "Unary",
+                    op: "|",
+                    operand: signed,
+
+                } as UnaryExpr;
+                
+                
 
             default:
                 throw `Unexpected token '${this.at().value}'!`;
@@ -479,6 +511,7 @@ const ConstantTable : Record<string , number> = {
     "pi" : Math.PI,
     "e" : Math.E,
     "phi" : (1 + Math.sqrt(5)) / 2,
+    "tau" : 2 * Math.PI,
 
 
 }
@@ -542,7 +575,13 @@ function evalUn(expr : UnaryExpr) : number {
             return evaluate(expr.operand);
 
         case "-":
-            return - evaluate(expr.operand);
+            return -evaluate(expr.operand);
+
+        case "|":
+            return Math.abs(evaluate(expr.operand));
+
+        default:
+            return 0;
 
 
     }
